@@ -74,8 +74,8 @@ Detailed evaluations are available from the [minimap2 paper][doi] or the
 Minimap2 is optimized for x86-64 CPUs. You can acquire precompiled binaries from
 the [release page][release] with:
 ```sh
-curl -L https://github.com/lh3/minimap2/releases/download/v2.20/minimap2-2.20_x64-linux.tar.bz2 | tar -jxvf -
-./minimap2-2.20_x64-linux/minimap2
+curl -L https://github.com/lh3/minimap2/releases/download/v2.24/minimap2-2.24_x64-linux.tar.bz2 | tar -jxvf -
+./minimap2-2.24_x64-linux/minimap2
 ```
 If you want to compile from the source, you need to have a C compiler, GNU make
 and zlib development files installed. Then type `make` in the source code
@@ -399,5 +399,5 @@ mappy` or [from BioConda][mappyconda] via `conda install -c bioconda mappy`.
 [manpage]: https://lh3.github.io/minimap2/minimap2.html
 [manpage-cs]: https://lh3.github.io/minimap2/minimap2.html#10
 [doi]: https://doi.org/10.1093/bioinformatics/bty191
-[smide]: https://github.com/nemequ/simde
+[simde]: https://github.com/nemequ/simde
 [unimap]: https://github.com/lh3/unimap

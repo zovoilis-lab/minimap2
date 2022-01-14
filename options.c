@@ -19,6 +19,7 @@ void mm_mapopt_init(mm_mapopt_t *opt)
 	opt->min_mid_occ = 10;
 	opt->max_mid_occ = 1000000;
 	opt->sdust_thres = 0; // no SDUST masking
+	opt->q_occ_frac = 0.01f;
 
 	opt->min_cnt = 3;
 	opt->min_chain_score = 40;
@@ -32,6 +33,7 @@ void mm_mapopt_init(mm_mapopt_t *opt)
 	opt->rmq_rescue_size = 1000;
 	opt->rmq_rescue_ratio = 0.1f;
 	opt->chain_gap_scale = 0.8f;
+	opt->chain_skip_scale = 0.0f;
 	opt->max_max_occ = 4095;
 	opt->occ_dist = 500;
 
@@ -52,6 +54,10 @@ void mm_mapopt_init(mm_mapopt_t *opt)
 	opt->max_clip_ratio = 1.0f;
 	opt->mini_batch_size = 500000000;
 	opt->max_sw_mat = 100000000;
+	opt->cap_kalloc = 1000000000;
+
+	opt->rank_min_len = 500;
+	opt->rank_frac = 0.9f;
 
 	opt->pe_ori = 0; // FF
 	opt->pe_bonus = 33;
@@ -68,6 +74,7 @@ void mm_mapopt_update(mm_mapopt_t *opt, const mm_idx_t *mi)
 		if (opt->max_mid_occ > opt->min_mid_occ && opt->mid_occ > opt->max_mid_occ)
 			opt->mid_occ = opt->max_mid_occ;
 	}
+	if (opt->bw_long < opt->bw) opt->bw_long = opt->bw;
 	if (mm_verbose >= 3)
 		fprintf(stderr, "[M::%s::%.3f*%.2f] mid_occ = %d\n", __func__, realtime() - mm_realtime0, cputime() / (realtime() - mm_realtime0), opt->mid_occ);
 }
@@ -107,7 +114,7 @@ int mm_set_opt(const char *preset, mm_idxopt_t *io, mm_mapopt_t *mo)
 		mo->min_dp_max = 200;
 	} else if (strncmp(preset, "asm", 3) == 0) {
 		io->flag = 0, io->k = 19, io->w = 19;
-		mo->bw = mo->bw_long = 100000;
+		mo->bw = 1000, mo->bw_long = 100000;
 		mo->max_gap = 10000;
 		mo->flag |= MM_F_RMQ;
 		mo->min_mid_occ = 50, mo->max_mid_occ = 500;
@@ -216,6 +223,11 @@ int mm_check_opt(const mm_idxopt_t *io, const mm_mapopt_t *mo)
 	if ((mo->flag & MM_F_NO_PRINT_2ND) && (mo->flag & MM_F_ALL_CHAINS)) {
 		if (mm_verbose >= 1)
 			fprintf(stderr, "[ERROR]\033[1;31m -X/-P and --secondary=no can't be applied at the same time\033[0m\n");
+		return -5;
+	}
+	if ((mo->flag & MM_F_QSTRAND) && ((mo->flag & (MM_F_OUT_SAM|MM_F_SPLICE|MM_F_FRAG_MODE)) || (io->flag & MM_I_HPC))) {
+		if (mm_verbose >= 1)
+			fprintf(stderr, "[ERROR]\033[1;31m --qstrand doesn't work with -a, -H, --frag or --splice\033[0m\n");
 		return -5;
 	}
 	return 0;
